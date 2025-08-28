@@ -42,7 +42,7 @@ from typing import Dict, Any, List, Union
 import argparse
 
 # Configuration options
-DOWNGRADE_TO_3_0_1 = False  # Set to True if your APIM instance requires OpenAPI 3.0.1
+DOWNGRADE_TO_3_0_1 = True  # Set to True if your APIM instance requires OpenAPI 3.0.1
 
 # Create a session object for better connection reuse
 session = requests.Session()
@@ -121,33 +121,6 @@ def fix_discriminators(obj: Union[Dict[str, Any], List[Any], Any]) -> None:
         for item in obj:
             fix_discriminators(item)
 
-def fix_nullable_types(obj: Union[Dict[str, Any], List[Any], Any]) -> None:
-    """Convert OpenAPI 3.1.0 nullable syntax to 3.0.1 compatible format.
-    
-    OpenAPI 3.1.0 uses: type: ["string", "null"]
-    OpenAPI 3.0.1 needs: type: "string", nullable: true
-    
-    Args:
-        obj: The OpenAPI specification object to process
-    """
-    if isinstance(obj, dict):
-        # Check if this is a type field with array notation for nullability
-        if "type" in obj and isinstance(obj["type"], list):
-            type_array = obj["type"]
-            # Look for ["someType", "null"] pattern
-            if len(type_array) == 2 and "null" in type_array:
-                actual_type = [t for t in type_array if t != "null"][0]
-                obj["type"] = actual_type
-                obj["nullable"] = True
-                print(f"  Fixed nullable type: {type_array} -> type: {actual_type}, nullable: true")
-        
-        # Recursively process nested objects
-        for value in obj.values():
-            fix_nullable_types(value)
-            
-    elif isinstance(obj, list):
-        for item in obj:
-            fix_nullable_types(item)
 
 def remove_unsupported_props(obj: Union[Dict[str, Any], List[Any], Any], path: str = "") -> None:
     """Remove OpenAPI 3.1.0 specific properties that are not supported in 3.0.1.
