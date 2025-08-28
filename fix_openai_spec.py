@@ -24,7 +24,6 @@ Transformations performed:
 
 Requirements:
   - requests
-  - requests-cache  
   - jsonref
 
 Usage:
